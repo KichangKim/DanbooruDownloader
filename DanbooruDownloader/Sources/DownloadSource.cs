@@ -93,7 +93,7 @@ namespace DanbooruDownloader.Sources
 
                                 if (md5Hash != storedMd5Hash)
                                 {
-                                    Console.WriteLine($"MD5 Hash is different. We'll download this. : {md5Hash} (old) /= {storedMd5Hash} (new)");
+                                    Console.WriteLine($"MD5 Hash is different. We'll download this. : {md5Hash} (new) /= {storedMd5Hash} (old)");
                                     shouldDownload = true;
                                 }
                                 else
