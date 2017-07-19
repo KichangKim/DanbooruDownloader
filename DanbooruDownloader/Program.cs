@@ -38,6 +38,7 @@ namespace DanbooruDownloader
             CommandOption outputOption = commandLineApplication.Option("-o|--output <path>", "Output folder. Default is current folder.", CommandOptionType.SingleValue);
             CommandOption versionOption = commandLineApplication.VersionOption("-v|--version", PlatformServices.Default.Application.ApplicationVersion);
             CommandOption limitOption = commandLineApplication.Option("-l|--limit <limit>", "Limit posts count per page. It can't over 1000. Default is 1000.", CommandOptionType.SingleValue);
+            CommandOption recalculateHashOption = commandLineApplication.Option("-r|--recalculate", "Recalculate MD5 hash.", CommandOptionType.NoValue);
 
             commandLineApplication.HelpOption("-?|-h|--help");
             commandLineApplication.OnExecute(() =>
@@ -46,7 +47,8 @@ namespace DanbooruDownloader
                 string sourceName = sourceOption.HasValue() ? sourceOption.Value() : defaultSourceName;
                 string query = queryArgument.Value;
                 int limit = 1000;
-
+                bool recalculateHash = recalculateHashOption.HasValue();
+                
                 if (limitOption.HasValue())
                 {
                     if (!int.TryParse(limitOption.Value(), out limit))
@@ -56,7 +58,7 @@ namespace DanbooruDownloader
                         return -1;
                     }
                 }
-
+                
                 if (string.IsNullOrEmpty(query))
                 {
                     Console.WriteLine("Invalid query.");
@@ -76,7 +78,7 @@ namespace DanbooruDownloader
                     Directory.CreateDirectory(outputPath);
                 }
 
-                sourceDictionary[sourceName].Run(query, outputPath, limit).Wait();
+                sourceDictionary[sourceName].Run(query, outputPath, limit, recalculateHash).Wait();
                 
                 return 0;
             });

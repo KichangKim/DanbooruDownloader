@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,8 +22,10 @@ namespace DanbooruDownloader.Sources
         protected abstract string TagsPropertyName { get; }
 
         protected abstract string ToCompleteImageUrl(string imageUrlFromMetadata);
+
+        protected abstract DateTime ToDateTime(string timeFromMetadata);
         
-        public async Task Run(string query, string outputPath, int limit)
+        public async Task Run(string query, string outputPath, int limit, bool recalculateHash)
         {
             string metadataOutputPath = Path.Combine(outputPath, "metadata");
 
@@ -30,44 +33,97 @@ namespace DanbooruDownloader.Sources
             {
                 Directory.CreateDirectory(metadataOutputPath);
             }
-
+            
             int page = 1;
             int totalDownloadCount = 0;
+
             while (true)
             {
+                Console.WriteLine($"Downloading metadata ... (page {page})");
                 JObject[] imageMetadatas = await this.GetPosts(query, page, limit);
 
-                int currentIndex = 1;
+                int currentIndex = 0;
 
                 foreach (JObject imageMetadata in imageMetadatas)
                 {
+                    Console.WriteLine();
+                    currentIndex++;
                     try
                     {
                         string id = imageMetadata.GetValue("id").ToString();
                         string tags = imageMetadata.GetValue(this.TagsPropertyName).ToString();
+                        string md5Hash = imageMetadata.GetValue("md5").ToString().ToLower();
                         string imageUrl = this.ToCompleteImageUrl(imageMetadata.GetValue("file_url").ToString());
-                        string imageFilePath = Path.Combine(outputPath, $"{id}.{imageMetadata.GetValue("file_ext")}");
-                        string metadataFilePath = Path.Combine(metadataOutputPath, $"{id}.json");
+                        string imageFilePath = Path.Combine(outputPath, $"{md5Hash}.{imageMetadata.GetValue("file_ext")}");
+                        string metadataFilePath = Path.Combine(metadataOutputPath, $"{md5Hash}-{this.Name}-{id}.json");
+                        DateTime updateDateTime = this.ToDateTime(imageMetadata.GetValue("updated_at").ToString());
 
-                        if (!File.Exists(imageFilePath) || !File.Exists(metadataFilePath) || this.IsMetadataUpdated(imageMetadata, metadataFilePath))
+                        Console.WriteLine($"({currentIndex}/{imageMetadatas.Length}) (Page {page})");
+                        Console.WriteLine($"Id     : {id}");
+                        Console.WriteLine($"Update : {updateDateTime}");
+                        Console.WriteLine($"MD5    : {md5Hash}");
+                        Console.WriteLine($"Tags   : {tags}");
+
+                        bool shouldDownload = false;
+
+                        if (File.Exists(metadataFilePath) && this.IsMetadataUpdated(imageMetadata, metadataFilePath))
                         {
-                            Console.WriteLine($"Downloading {id} ... (Page {page}, {currentIndex}/{imageMetadatas.Length}){Environment.NewLine}{tags}");
+                            shouldDownload = true;
+                        }
+
+                        File.WriteAllText(metadataFilePath, imageMetadata.ToString());
+
+                        if (!shouldDownload && !File.Exists(imageFilePath))
+                        {
+                            shouldDownload = true;
+                        }
+
+                        if (!shouldDownload && File.Exists(imageFilePath))
+                        {
+                            if (recalculateHash)
+                            {
+                                string storedMd5Hash = this.GetMd5Hash(imageFilePath);
+
+                                if (md5Hash != storedMd5Hash)
+                                {
+                                    Console.WriteLine($"MD5 Hash is different. We'll download this. : {md5Hash} (old) /= {storedMd5Hash} (new)");
+                                    shouldDownload = true;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("MD5 hash is same. We'll skip this.");
+                                }
+                            }
+                        }
+                        
+                        if (shouldDownload)
+                        {
+                            Console.WriteLine($"Downloading ... ");
                             await this.Download(imageUrl, imageFilePath);
-                            File.WriteAllText(metadataFilePath, imageMetadata.ToString());
+
+                            string downloadedMd5Hash = this.GetMd5Hash(imageFilePath);
+
+                            if (md5Hash != downloadedMd5Hash)
+                            {
+                                Console.WriteLine($"Difference MD5 hash between metadata and downloaded image. We'll delete this. : {md5Hash} /= {downloadedMd5Hash}");
+                                File.Delete(imageFilePath);
+                                continue;
+                            }
+
+                            
+                            this.ChageFileTime(imageFilePath, updateDateTime);
+
                             totalDownloadCount++;
-                            await Task.Delay(1000);
                         }
                         else
                         {
-                            Console.WriteLine($"Skipping {id} ... (Page {page}, {currentIndex}/{imageMetadatas.Length})");
+                            Console.WriteLine($"Skipping ...");
                         }
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e);
                     }
-
-                    currentIndex++;
                 }
 
                 if (imageMetadatas.Length > 0)
@@ -161,6 +217,25 @@ namespace DanbooruDownloader.Sources
             }
 
             return sources;
+        }
+
+        string GetMd5Hash(string path)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                using (FileStream stream = new FileStream(path, FileMode.Open))
+                {
+                    byte[] hashBytes = md5.ComputeHash(stream);
+
+                    return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+                }
+            }
+        }
+
+        void ChageFileTime(string path, DateTime time)
+        {
+            File.SetCreationTime(path, time);
+            File.SetLastWriteTime(path, time);
         }
     }
 }

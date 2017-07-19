@@ -13,5 +13,10 @@ namespace DanbooruDownloader.Sources
         {
             return $"https://danbooru.donmai.us{imageUrlFromMetadata}";
         }
+
+        protected override DateTime ToDateTime(string timeFromMetadata)
+        {
+            return DateTime.Parse(timeFromMetadata);
+        }
     }
 }
