@@ -56,10 +56,12 @@ namespace DanbooruDownloader.Sources
                         string imageUrl = this.ToCompleteImageUrl(imageMetadata.GetValue("file_url").ToString());
                         string imageFilePath = Path.Combine(outputPath, $"{md5Hash}.{imageMetadata.GetValue("file_ext")}");
                         string metadataFilePath = Path.Combine(metadataOutputPath, $"{md5Hash}-{this.Name}-{id}.json");
+                        DateTime createDateTime = this.ToDateTime(imageMetadata.GetValue("created_at").ToString());
                         DateTime updateDateTime = this.ToDateTime(imageMetadata.GetValue("updated_at").ToString());
 
                         Console.WriteLine($"({currentIndex}/{imageMetadatas.Length}) (Page {page})");
                         Console.WriteLine($"Id     : {id}");
+                        Console.WriteLine($"Create : {createDateTime}");
                         Console.WriteLine($"Update : {updateDateTime}");
                         Console.WriteLine($"MD5    : {md5Hash}");
                         Console.WriteLine($"Tags   : {tags}");
@@ -111,7 +113,7 @@ namespace DanbooruDownloader.Sources
                             }
 
                             
-                            this.ChageFileTime(imageFilePath, updateDateTime);
+                            this.ChageFileTime(imageFilePath, createDateTime, updateDateTime);
 
                             totalDownloadCount++;
                         }
@@ -232,10 +234,10 @@ namespace DanbooruDownloader.Sources
             }
         }
 
-        void ChageFileTime(string path, DateTime time)
+        void ChageFileTime(string path, DateTime createTime, DateTime updateTime)
         {
-            File.SetCreationTime(path, time);
-            File.SetLastWriteTime(path, time);
+            File.SetCreationTime(path, createTime);
+            File.SetLastWriteTime(path, updateTime);
         }
     }
 }
