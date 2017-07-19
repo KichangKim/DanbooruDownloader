@@ -37,6 +37,7 @@ namespace DanbooruDownloader
             CommandOption sourceOption = commandLineApplication.Option($"-s|--source <source> ", $"Source for downloading. This can be <{sourceOptionArgumentTemplate}>. Default is {defaultSourceName}.", CommandOptionType.SingleValue);
             CommandOption outputOption = commandLineApplication.Option("-o|--output <path>", "Output folder. Default is current folder.", CommandOptionType.SingleValue);
             CommandOption versionOption = commandLineApplication.VersionOption("-v|--version", PlatformServices.Default.Application.ApplicationVersion);
+            CommandOption limitOption = commandLineApplication.Option("-l|--limit <limit>", "Limit posts count per page. It can't over 1000. Default is 1000.", CommandOptionType.SingleValue);
 
             commandLineApplication.HelpOption("-?|-h|--help");
             commandLineApplication.OnExecute(() =>
@@ -44,6 +45,17 @@ namespace DanbooruDownloader
                 string outputPath = outputOption.HasValue() ? outputOption.Value() : "output";
                 string sourceName = sourceOption.HasValue() ? sourceOption.Value() : defaultSourceName;
                 string query = queryArgument.Value;
+                int limit = 1000;
+
+                if (limitOption.HasValue())
+                {
+                    if (!int.TryParse(limitOption.Value(), out limit))
+                    {
+                        Console.WriteLine("Invalid limit.");
+                        commandLineApplication.ShowHint();
+                        return -1;
+                    }
+                }
 
                 if (string.IsNullOrEmpty(query))
                 {
@@ -64,7 +76,7 @@ namespace DanbooruDownloader
                     Directory.CreateDirectory(outputPath);
                 }
 
-                sourceDictionary[sourceName].Run(query, outputPath).Wait();
+                sourceDictionary[sourceName].Run(query, outputPath, limit).Wait();
                 
                 return 0;
             });
