@@ -59,6 +59,11 @@ namespace DanbooruDownloader.Sources
                         DateTime createDateTime = this.ToDateTime(imageMetadata.GetValue("created_at").ToString());
                         DateTime updateDateTime = this.ToDateTime(imageMetadata.GetValue("updated_at").ToString());
 
+                        if (updateDateTime < createDateTime)
+                        {
+                            updateDateTime = createDateTime;
+                        }
+
                         Console.WriteLine($"({currentIndex}/{imageMetadatas.Length}) (Page {page})");
                         Console.WriteLine($"Id     : {id}");
                         Console.WriteLine($"Create : {createDateTime}");
