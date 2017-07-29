@@ -33,7 +33,14 @@ namespace DanbooruDownloader.Sources
             {
                 Directory.CreateDirectory(metadataOutputPath);
             }
-            
+
+            string tempOutputPath = Path.Combine(outputPath, "temp");
+
+            if (!Directory.Exists(tempOutputPath))
+            {
+                Directory.CreateDirectory(tempOutputPath);
+            }
+
             int page = 1;
             int totalDownloadCount = 0;
 
@@ -54,7 +61,8 @@ namespace DanbooruDownloader.Sources
                         string tags = imageMetadata.GetValue(this.TagsPropertyName).ToString();
                         string md5Hash = imageMetadata.GetValue("md5").ToString().ToLower();
                         string imageUrl = this.ToCompleteImageUrl(imageMetadata.GetValue("file_url").ToString());
-                        string imageFilePath = Path.Combine(outputPath, $"{md5Hash}.{imageMetadata.GetValue("file_ext")}");
+                        string imageFileOutputPath = Path.Combine(outputPath, $"{md5Hash}.{imageMetadata.GetValue("file_ext")}");
+                        string imageFileTempPath = Path.Combine(tempOutputPath, $"{md5Hash}.{imageMetadata.GetValue("file_ext")}");
                         string metadataFilePath = Path.Combine(metadataOutputPath, $"{md5Hash}-{this.Name}-{id}.json");
                         DateTime createDateTime = this.ToDateTime(imageMetadata.GetValue("created_at").ToString());
                         DateTime updateDateTime = this.ToDateTime(imageMetadata.GetValue("updated_at").ToString());
@@ -80,16 +88,16 @@ namespace DanbooruDownloader.Sources
 
                         File.WriteAllText(metadataFilePath, imageMetadata.ToString());
 
-                        if (!shouldDownload && !File.Exists(imageFilePath))
+                        if (!shouldDownload && !File.Exists(imageFileOutputPath))
                         {
                             shouldDownload = true;
                         }
 
-                        if (!shouldDownload && File.Exists(imageFilePath))
+                        if (!shouldDownload && File.Exists(imageFileOutputPath))
                         {
                             if (recalculateHash)
                             {
-                                string storedMd5Hash = this.GetMd5Hash(imageFilePath);
+                                string storedMd5Hash = this.GetMd5Hash(imageFileOutputPath);
 
                                 if (md5Hash != storedMd5Hash)
                                 {
@@ -106,19 +114,22 @@ namespace DanbooruDownloader.Sources
                         if (shouldDownload)
                         {
                             Console.WriteLine($"Downloading ... ");
-                            await this.Download(imageUrl, imageFilePath);
+                            await this.Download(imageUrl, imageFileTempPath);
 
-                            string downloadedMd5Hash = this.GetMd5Hash(imageFilePath);
+                            string downloadedMd5Hash = this.GetMd5Hash(imageFileTempPath);
 
                             if (md5Hash != downloadedMd5Hash)
                             {
                                 Console.WriteLine($"Difference MD5 hash between metadata and downloaded image. We'll delete this. : {md5Hash} /= {downloadedMd5Hash}");
-                                File.Delete(imageFilePath);
+                                File.Delete(imageFileTempPath);
                                 continue;
                             }
 
                             
-                            this.ChageFileTime(imageFilePath, createDateTime, updateDateTime);
+                            this.ChageFileTime(imageFileTempPath, createDateTime, updateDateTime);
+
+                            File.Delete(imageFileOutputPath);
+                            File.Move(imageFileTempPath, imageFileOutputPath);
 
                             totalDownloadCount++;
                         }
@@ -144,6 +155,7 @@ namespace DanbooruDownloader.Sources
                 }
             }
 
+            Directory.Delete(tempOutputPath);
             Console.WriteLine($"Total {totalDownloadCount} images are downloaded.");
         }
 
