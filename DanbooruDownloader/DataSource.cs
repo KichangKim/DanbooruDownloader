@@ -102,14 +102,12 @@ namespace DanbooruDownloader
                     {
                         if (string.IsNullOrEmpty(post.Md5))
                         {
-                            post.IsDirty = false;
                             logger.Debug($"Skip for empty MD5 : Id={post.Id}");
                             return;
                         }
 
                         if (string.IsNullOrEmpty(post.ImageUrl))
                         {
-                            post.IsDirty = false;
                             logger.Debug($"Skip for empty image URL : Id={post.Id}");
                             return;
                         }
@@ -117,35 +115,37 @@ namespace DanbooruDownloader
                         post.IsValid = true;
 
                         string metadataPath = Path.Combine(this.GetMetadataBaseFolderPath(context, post), this.GetMetadataJsonFileName(context, post));
-
-                        if (!File.Exists(metadataPath))
-                        {
-                            post.IsDirty = true;
-                            return;
-                        }
-
+                        
                         try
                         {
-                            Post storedPost = this.ToPost(JObject.Parse(File.ReadAllText(metadataPath)));
-
-                            if (post.UpdatedDate > storedPost.UpdatedDate)
+                            if (File.Exists(metadataPath))
                             {
-                                post.IsDirty = true;
-                                return;
+                                Post storedPost = this.ToPost(JObject.Parse(File.ReadAllText(metadataPath)));
+
+                                if (post.UpdatedDate > storedPost.UpdatedDate)
+                                {
+                                    post.ShouldSaveMetadata = true;
+                                    post.ShouldUpdateImage = true;
+                                }
+                            }
+                            else
+                            {
+                                post.ShouldSaveMetadata = true;
+                                post.ShouldUpdateImage = true;
                             }
                         }
                         catch (Exception e)
                         {
                             logger.Error(e, $"An error occured when parsing metadata : Id={post.Id}, MD5={post.Md5}");
-                            post.IsDirty = true;
-                            return;
+                            post.ShouldSaveMetadata = true;
                         }
 
                         string storedImagePath = Path.Combine(this.GetImageBaseFolderPath(context, post), this.GetImageFileName(context, post));
 
                         if (!File.Exists(storedImagePath))
                         {
-                            post.IsDirty = true;
+                            post.ShouldDownloadImage = true;
+                            post.ShouldUpdateImage = true;
                             return;
                         }
 
@@ -155,18 +155,20 @@ namespace DanbooruDownloader
 
                             if (post.Md5 != storedImageMd5)
                             {
-                                post.IsDirty = true;
+                                post.ShouldDownloadImage = true;
+                                post.ShouldUpdateImage = true;
                                 logger.Warn($"MD5 is different : Id={post.Id}, {post.Md5} (new) != {storedImageMd5} (stored)");
                                 return;
                             }
                         }
                     });
 
-                    int dirtyPostCount = posts.Where(p => p.IsDirty).Count();
+                    int shouldDownloadCount = posts.Where(p => p.ShouldDownloadImage).Count();
+                    int shouldUpdateCount = posts.Where(p => p.ShouldUpdateImage).Count();
 
-                    if (dirtyPostCount > 0)
+                    if (shouldDownloadCount > 0 || shouldUpdateCount > 0)
                     {
-                        logger.Info($"{dirtyPostCount} of {posts.Length} posts are updated. Downloading updated posts ...");
+                        logger.Info($"{shouldUpdateCount} of {posts.Length} posts are updated. Downloading {shouldDownloadCount} posts ...");
                     }
                     else
                     {
@@ -177,7 +179,7 @@ namespace DanbooruDownloader
 
                     foreach (Post post in posts)
                     {
-                        if (post.IsDirty)
+                        if (post.ShouldDownloadImage || post.ShouldSaveMetadata || post.ShouldUpdateImage)
                         {
                             string imageFileName = this.GetImageFileName(context, post);
                             string imageBaseFolderPath = this.GetImageBaseFolderPath(context, post);
@@ -193,21 +195,33 @@ namespace DanbooruDownloader
                             {
                                 try
                                 {
-                                    logger.Info($"Downloading post {post.Id} ...");
-                                    await this.Download(post.ImageUrl, imageTemporaryPath);
-                                    string downloadedMd5 = this.GetMd5Hash(imageTemporaryPath);
-
-                                    if (downloadedMd5 != post.Md5)
+                                    if (post.ShouldDownloadImage)
                                     {
-                                        logger.Warn($"MD5 hash of downloaded image is different : Id={post.Id}, {post.Md5} (metadata) != {downloadedMd5} (downloaded)");
-                                        File.Delete(imageTemporaryPath);
-                                        throw new Exception();
+                                        logger.Info($"Downloading post {post.Id} ...");
+                                        await this.Download(post.ImageUrl, imageTemporaryPath);
+                                        string downloadedMd5 = this.GetMd5Hash(imageTemporaryPath);
+
+                                        if (downloadedMd5 != post.Md5)
+                                        {
+                                            logger.Warn($"MD5 hash of downloaded image is different : Id={post.Id}, {post.Md5} (metadata) != {downloadedMd5} (downloaded)");
+                                            File.Delete(imageTemporaryPath);
+                                            throw new Exception();
+                                        }
+                                        
+                                        File.Delete(imageCommitPath);
+                                        File.Move(imageTemporaryPath, imageCommitPath);
                                     }
 
-                                    FileEx.ChangeFileTimestamp(imageTemporaryPath, post.CreatedDate, post.UpdatedDate);
-                                    File.Delete(imageCommitPath);
-                                    File.Move(imageTemporaryPath, imageCommitPath);
-                                    File.WriteAllText(metadataPath, post.JsonString);
+                                    if (post.ShouldDownloadImage || post.ShouldUpdateImage)
+                                    {
+                                        FileEx.ChangeFileTimestamp(imageCommitPath, post.CreatedDate, post.UpdatedDate);
+                                    }
+
+                                    if (post.ShouldSaveMetadata)
+                                    {
+                                        File.WriteAllText(metadataPath, post.JsonString);
+                                    }
+
                                     post.IsProcessed = true;
                                     break;
                                 }
