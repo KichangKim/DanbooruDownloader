@@ -107,6 +107,13 @@ namespace DanbooruDownloader
                             return;
                         }
 
+                        if (string.IsNullOrEmpty(post.ImageUrl))
+                        {
+                            post.IsDirty = false;
+                            logger.Debug($"Skip for empty image URL : Id={post.Id}");
+                            return;
+                        }
+
                         string metadataPath = Path.Combine(this.GetMetadataBaseFolderPath(context, post), this.GetMetadataJsonFileName(context, post));
 
                         if (!File.Exists(metadataPath))

@@ -144,6 +144,8 @@ namespace DanbooruDownloader
                 throw new ArgumentException($"Invalid provider name : {sourceName}");
             }
 
+            context.SourceName = sourceName;
+
             return (context, sources[sourceName]);
         }
     }

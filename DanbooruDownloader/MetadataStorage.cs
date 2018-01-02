@@ -38,6 +38,7 @@ namespace DanbooruDownloader
                 command.CommandText = @"
 CREATE TABLE IF NOT EXISTS images(
     id INTEGER NOT NULL PRIMARY KEY,
+    md5 TEXT,
 	extension TEXT,
 	tags TEXT,
 	created TEXT,
@@ -59,15 +60,16 @@ CREATE TABLE IF NOT EXISTS images(
                     SqliteCommand command = this.connection.CreateCommand();
 
                     command.CommandText = @"
-INSERT OR REPLACE INTO Images (Id, Extension, Tags, Created, Updated, Json) VALUES
-($Id, $Extension, $Tags, $Created, $Updated, $Json)";
+INSERT OR REPLACE INTO Images (id, md5, extension, tags, created, updated, json) VALUES
+($id, $md5, $extension, $tags, $created, $updated, $json)";
 
-                    command.Parameters.AddWithValue("$Id", post.Id);
-                    command.Parameters.AddWithValue("$Extension", post.Extension);
-                    command.Parameters.AddWithValue("$Tags", post.Tags);
-                    command.Parameters.AddWithValue("$Created", post.CreatedDate);
-                    command.Parameters.AddWithValue("$Updated", post.UpdatedDate);
-                    command.Parameters.AddWithValue("$Json", post.JsonString);
+                    command.Parameters.AddWithValue("$id", post.Id);
+                    command.Parameters.AddWithValue("$md5", post.Md5);
+                    command.Parameters.AddWithValue("$extension", post.Extension);
+                    command.Parameters.AddWithValue("$tags", post.Tags);
+                    command.Parameters.AddWithValue("$created", post.CreatedDate);
+                    command.Parameters.AddWithValue("$updated", post.UpdatedDate);
+                    command.Parameters.AddWithValue("$json", post.JsonString);
 
                     command.ExecuteNonQuery();
                 }

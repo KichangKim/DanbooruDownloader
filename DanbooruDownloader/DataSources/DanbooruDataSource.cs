@@ -12,13 +12,13 @@ namespace DanbooruDownloader.DataSources
         protected override string GetDumpUrl(long startId)
         {
             string query = $"id:>={startId} order:id_asc";
-            return $"https://danbooru.donmai.us/posts.json?tags={query}&page=1&limit=1000";
+            string urlEncodedQuery = WebUtility.UrlEncode(query);
+            return $"https://danbooru.donmai.us/posts.json?tags={urlEncodedQuery}&page=1&limit=1000";
         }
 
         protected override string GetPostsUrl(string query, long page)
         {
             string urlEncodedQuery = WebUtility.UrlEncode(query);
-
             return $"https://danbooru.donmai.us/posts.json?tags={urlEncodedQuery}&page={page}&limit=1000";
         }
 
