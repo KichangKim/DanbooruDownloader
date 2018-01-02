@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "DanbooruDownloader": {
-      "commandName": "Project",
-      "commandLineArgs": "--help"
-    }
-  }
-}

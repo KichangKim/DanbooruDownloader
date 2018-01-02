@@ -1,9 +1,7 @@
-﻿using DanbooruDownloader.Sources;
-using Microsoft.Extensions.CommandLineUtils;
+﻿using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.PlatformAbstractions;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace DanbooruDownloader
@@ -12,85 +10,141 @@ namespace DanbooruDownloader
     {
         static void Main(string[] args)
         {
-            IEnumerable<DownloadSource> sources = DownloadSource.GetAllSources();
-            Dictionary<string, DownloadSource> sourceDictionary = new Dictionary<string, DownloadSource>();
+            IDictionary<string, DataSource> sources = DataSource.GetAllAsDictionary();
 
-            string defaultSourceName = null;
-
-            foreach (DownloadSource source in sources)
+            CommandLineApplication application = new CommandLineApplication(true)
             {
-                sourceDictionary.Add(source.Name, source);
-
-                if (source.IsDefault)
-                {
-                    defaultSourceName = source.Name;
-                }
-            }
-
-            string sourceOptionArgumentTemplate = string.Join("|", sources.Select(source => source.Name).OrderBy(name => name).ToArray());
-
-            CommandLineApplication commandLineApplication = new CommandLineApplication(true)
-            {
-                FullName = "Danbooru Downloader"
+                FullName = "Danbooru Downloader",
             };
-            CommandArgument queryArgument = commandLineApplication.Argument("<query>", "Query for search.", false);
-            CommandOption sourceOption = commandLineApplication.Option($"-s|--source <source> ", $"Source for downloading. This can be <{sourceOptionArgumentTemplate}>. Default is {defaultSourceName}.", CommandOptionType.SingleValue);
-            CommandOption outputOption = commandLineApplication.Option("-o|--output <path>", "Output folder. Default is current folder.", CommandOptionType.SingleValue);
-            CommandOption versionOption = commandLineApplication.VersionOption("-v|--version", PlatformServices.Default.Application.ApplicationVersion);
-            CommandOption limitOption = commandLineApplication.Option("-l|--limit <limit>", "Limit posts count per page. It can't over 1000. Default is 1000.", CommandOptionType.SingleValue);
-            CommandOption recalculateHashOption = commandLineApplication.Option("-r|--recalculate", "Recalculate MD5 hash.", CommandOptionType.NoValue);
 
-            commandLineApplication.HelpOption("-?|-h|--help");
-            commandLineApplication.OnExecute(() =>
+            application.HelpOption("-?|-h|--help");
+
+            string defaultDataSourceName = sources.Values.Where(p => p.IsDefault).Select(p => p.Name).FirstOrDefault() ?? "none";
+            
+            string dataSourceOptionTemplate = string.Join(" | ", sources.Select(source => source.Key).OrderBy(key => key).ToArray());
+
+            CommandOption sourceNameOption = application.Option($"-s|--source <name> ", $"Source for downloading. This can be <{dataSourceOptionTemplate}>. Default is {defaultDataSourceName}.", CommandOptionType.SingleValue);
+
+            CommandOption outputPathOption = application.Option("-o|--output <path>", "Output folder. Default is current folder.", CommandOptionType.SingleValue);
+
+            CommandOption ignoreHashCalculationOption = application.Option("-i|--ignore-hash", "Ignore MD5 hash calculation for checking updated posts.", CommandOptionType.NoValue);
+
+            CommandOption versionOption = application.VersionOption("-v|--version", PlatformServices.Default.Application.ApplicationVersion);
+            
+            application.Command("tag", command =>
             {
-                string outputPath = outputOption.HasValue() ? outputOption.Value() : "output";
-                string sourceName = sourceOption.HasValue() ? sourceOption.Value() : defaultSourceName;
-                string query = queryArgument.Value;
-                int limit = 1000;
-                bool recalculateHash = recalculateHashOption.HasValue();
-                
-                if (limitOption.HasValue())
+                command.Description = "Download images by tag searching.";
+                command.HelpOption("-h|--help");
+
+                CommandArgument queryArgument = command.Argument("tags", "Search tags for Album mode.", true);
+
+                CommandOption startPageOption = command.Option("-p|--page <number>", "Starting page number. Default is 1.", CommandOptionType.SingleValue);
+
+                command.OnExecute(() =>
                 {
-                    if (!int.TryParse(limitOption.Value(), out limit))
+                    (DataSourceContext context, DataSource source) = GetDataSourceContextAndSource(
+                        sourceNameOption: sourceNameOption,
+                        outputPathOption: outputPathOption,
+                        ignoreHashCalculationOption: ignoreHashCalculationOption,
+                        defaultDataSourceName: defaultDataSourceName,
+                        sources: sources
+                        );
+                    
+                    if (!long.TryParse(startPageOption.HasValue() ? startPageOption.Value() : "1", out context.StartPageForTag))
                     {
-                        Console.WriteLine("Invalid limit.");
-                        commandLineApplication.ShowHint();
-                        return -1;
+                        Console.WriteLine("Invalid starting page number.");
+                        return -2;
                     }
-                }
-                
-                if (string.IsNullOrEmpty(query))
-                {
-                    Console.WriteLine("Invalid query.");
-                    commandLineApplication.ShowHint();
-                    return -1;
-                }
 
-                if (!sourceDictionary.ContainsKey(sourceName))
-                {
-                    Console.WriteLine("Invalid source name : {0}", sourceName);
-                    commandLineApplication.ShowHint();
-                    return -1;
-                }
+                    context.QueryForTag = string.Join(" ", queryArgument.Values);
 
-                if (!Directory.Exists(outputPath))
-                {
-                    Directory.CreateDirectory(outputPath);
-                }
+                    if (string.IsNullOrEmpty(context.QueryForTag))
+                    {
+                        Console.WriteLine("Invalid query.");
+                        return -2;
+                    }
 
-                sourceDictionary[sourceName].Run(query, outputPath, limit, recalculateHash).Wait();
-                
+                    context.Mode = DataSourceMode.Tag;
+
+                    source.Run(context).Wait();
+
+                    return 0;
+                });
+            });
+
+            application.Command("dump", command =>
+            {
+                command.Description = "Download entire images on the server of specified source.";
+                command.HelpOption("-h|--help");
+
+                CommandOption startIdOption = command.Option("-i|--id <index>", "Starting Id. Default is 1.", CommandOptionType.SingleValue);
+
+                command.OnExecute(() =>
+                {
+                    (DataSourceContext context, DataSource source) = GetDataSourceContextAndSource(
+                        sourceNameOption: sourceNameOption,
+                        outputPathOption: outputPathOption,
+                        ignoreHashCalculationOption: ignoreHashCalculationOption,
+                        defaultDataSourceName: defaultDataSourceName,
+                        sources: sources
+                        );
+                    
+                    if (!long.TryParse(startIdOption.HasValue() ? startIdOption.Value() : "1", out context.StartIdForDump))
+                    {
+                        Console.WriteLine("Invalid starting Id.");
+                        return -2;
+                    }
+
+                    string outputPath = outputPathOption.HasValue() ? outputPathOption.Value() : ".";
+                    bool recalculateHash = ignoreHashCalculationOption.HasValue();
+
+                    context.Mode = DataSourceMode.Dump;
+
+                    source.Run(context).Wait();
+                    return 0;
+                });
+            });
+
+            application.OnExecute(() =>
+            {
+                application.ShowHint();
+
                 return 0;
             });
 
             try
             {
-                commandLineApplication.Execute(args);
+                int exitCode = application.Execute(args);
+
+                if (exitCode == -2)
+                {
+                    application.ShowHint();
+                }
+
+                Environment.ExitCode = exitCode;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                Environment.ExitCode = -1;
             }
+        }
+
+        static (DataSourceContext context, DataSource source) GetDataSourceContextAndSource(CommandOption sourceNameOption, CommandOption outputPathOption, CommandOption ignoreHashCalculationOption, string defaultDataSourceName, IDictionary<string, DataSource> sources)
+        {
+            DataSourceContext context = new DataSourceContext();
+
+            context.OutputPath = outputPathOption.HasValue() ? outputPathOption.Value() : ".";
+            context.IgnoreHashCalculation = ignoreHashCalculationOption.HasValue();
+
+            string sourceName = sourceNameOption.HasValue() ? sourceNameOption.Value() : defaultDataSourceName;
+
+            if (!sources.ContainsKey(sourceName))
+            {
+                throw new ArgumentException($"Invalid provider name : {sourceName}");
+            }
+
+            return (context, sources[sourceName]);
         }
     }
 }
