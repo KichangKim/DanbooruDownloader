@@ -97,6 +97,10 @@ namespace DanbooruDownloader
                     {
                         logger.Info($"Checking {posts.Length} posts ...");
                     }
+                    else
+                    {
+                        logger.Info("Empty posts.");
+                    }
 
                     Parallel.ForEach(posts, post =>
                     {
@@ -254,8 +258,11 @@ namespace DanbooruDownloader
                         lastPost = post;
                     }
 
-                    logger.Info("Updating database ...");
-                    metadataStorage.InsertOrReplace(posts.Where(p => p.IsValid));
+                    if (posts.Length > 0)
+                    {
+                        logger.Info("Updating database ...");
+                        metadataStorage.InsertOrReplace(posts.Where(p => p.IsValid));
+                    }
 
                     this.UpdateContextToNext(context, lastPost);
                 }
