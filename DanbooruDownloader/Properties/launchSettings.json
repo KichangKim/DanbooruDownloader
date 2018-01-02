@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "DanbooruDownloader": {
-      "commandName": "Project",
-      "commandLineArgs": "-s yandere -o test-yandere tag wilhelmina_braunschweig_ingenohl_friedeburg",
-      "workingDirectory": "D:\\Projects\\DanbooruDownloader\\DanbooruDownloader\\bin\\Release\\PublishOutput"
-    }
-  }
-}
