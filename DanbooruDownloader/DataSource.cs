@@ -114,6 +114,8 @@ namespace DanbooruDownloader
                             return;
                         }
 
+                        post.IsValid = true;
+
                         string metadataPath = Path.Combine(this.GetMetadataBaseFolderPath(context, post), this.GetMetadataJsonFileName(context, post));
 
                         if (!File.Exists(metadataPath))
@@ -236,7 +238,7 @@ namespace DanbooruDownloader
                     }
 
                     logger.Info("Updating database ...");
-                    metadataStorage.InsertOrReplace(posts.Where(p => p.IsDirty && p.IsProcessed));
+                    metadataStorage.InsertOrReplace(posts.Where(p => p.IsValid));
 
                     this.UpdateContextToNext(context, lastPost);
                 }

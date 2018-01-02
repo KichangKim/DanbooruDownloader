@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS images(
                     SqliteCommand command = this.connection.CreateCommand();
 
                     command.CommandText = @"
-INSERT OR REPLACE INTO Images (id, md5, extension, tags, created, updated, json) VALUES
+INSERT OR REPLACE INTO images (id, md5, extension, tags, created, updated, json) VALUES
 ($id, $md5, $extension, $tags, $created, $updated, $json)";
 
                     command.Parameters.AddWithValue("$id", post.Id);
