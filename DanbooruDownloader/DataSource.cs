@@ -80,7 +80,7 @@ namespace DanbooruDownloader
 
                         if (emptyPageCount >= context.EmptyPageCountThreshold)
                         {
-                            logger.Info($"Empty pages are found.");
+                            logger.Info($"There are multiple empty posts. We'll exit program.");
                             break;
                         }
 
@@ -166,13 +166,20 @@ namespace DanbooruDownloader
                     int shouldDownloadCount = posts.Where(p => p.ShouldDownloadImage).Count();
                     int shouldUpdateCount = posts.Where(p => p.ShouldUpdateImage).Count();
 
-                    if (shouldDownloadCount > 0 || shouldUpdateCount > 0)
+                    if (posts.Length > 0)
                     {
-                        logger.Info($"{shouldUpdateCount} of {posts.Length} posts are updated. Downloading {shouldDownloadCount} posts ...");
+                        if (shouldDownloadCount > 0 || shouldUpdateCount > 0)
+                        {
+                            logger.Info($"{shouldUpdateCount} of {posts.Length} posts are updated. Downloading {shouldDownloadCount} posts ...");
+                        }
+                        else
+                        {
+                            logger.Info($"In {posts.Length} posts, there are no updated posts.");
+                        }
                     }
                     else
                     {
-                        logger.Info("There are no updated posts.");
+                        logger.Info("Empty posts.");
                     }
 
                     Post lastPost = null;
