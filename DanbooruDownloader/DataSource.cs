@@ -95,7 +95,7 @@ namespace DanbooruDownloader
 
                     if (posts.Length > 0)
                     {
-                        logger.Info("Checking updated posts ...");
+                        logger.Info($"Checking {posts.Length} posts ...");
                     }
 
                     Parallel.ForEach(posts, post =>
@@ -174,12 +174,8 @@ namespace DanbooruDownloader
                         }
                         else
                         {
-                            logger.Info($"In {posts.Length} posts, there are no updated posts.");
+                            logger.Info("There are no updated posts.");
                         }
-                    }
-                    else
-                    {
-                        logger.Info("Empty posts.");
                     }
 
                     Post lastPost = null;
