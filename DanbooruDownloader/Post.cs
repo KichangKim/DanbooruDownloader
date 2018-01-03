@@ -14,6 +14,7 @@ namespace DanbooruDownloader
         public DateTime UpdatedDate;
         public string JsonString;
         public string ImageUrl;
+        public bool IsDeleted;
 
         public bool ShouldDownloadImage;
         public bool ShouldUpdateImage;

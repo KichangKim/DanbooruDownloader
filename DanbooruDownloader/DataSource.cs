@@ -116,6 +116,12 @@ namespace DanbooruDownloader
                             return;
                         }
 
+                        if (post.IsDeleted)
+                        {
+                            logger.Info($"{post.Id} was deleted.");
+                            return;
+                        }
+
                         post.IsValid = true;
 
                         string metadataPath = Path.Combine(this.GetMetadataBaseFolderPath(context, post), this.GetMetadataJsonFileName(context, post));
@@ -211,7 +217,17 @@ namespace DanbooruDownloader
                                         if (downloadedMd5 != post.Md5)
                                         {
                                             logger.Warn($"MD5 hash of downloaded image is different : Id={post.Id}, {post.Md5} (metadata) != {downloadedMd5} (downloaded)");
-                                            File.Delete(imageTemporaryPath);
+                                            try
+                                            {
+                                                File.Delete(imageTemporaryPath);
+                                            } finally { }
+                                            try
+                                            {
+                                                File.Delete(metadataPath);
+                                            }
+                                            finally { }
+                                            
+                                            post.IsValid = false;
                                             throw new Exception();
                                         }
                                         
