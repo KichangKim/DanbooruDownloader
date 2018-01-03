@@ -22,6 +22,13 @@ namespace DanbooruDownloader
         public readonly int RetryCount = 5;
         public readonly int RetryDelay = 3000;
         public readonly int EmptyPageCountThreshold = 3;
+        public readonly HashSet<string> AllowedExtensions = new HashSet<string>()
+        {
+            "jpeg",
+            "jpg",
+            "png",
+            "gif",
+        };
 
         public string TemporaryFolderPath
         {

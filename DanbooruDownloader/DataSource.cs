@@ -31,13 +31,24 @@ namespace DanbooruDownloader
         {
             context.Initialize();
 
-            DirectoryEx.CreateDirectoryIfNotExists(
-                context.OutputPath,
-                context.MetadataRootFolderPath,
-                context.MetadataJsonFolderPath,
-                context.TemporaryFolderPath
+            this.ActionByMode(context, tagAction: c =>
+            {
+                DirectoryEx.CreateDirectoryIfNotExists(
+                    c.OutputPath,
+                    c.MetadataRootFolderPath,
+                    c.MetadataJsonFolderPath,
+                    c.TemporaryFolderPath
                 );
-
+            },
+            dumpAction: c =>
+            {
+                DirectoryEx.CreateDirectoryIfNotExists(
+                    c.OutputPath,
+                    c.MetadataRootFolderPath,
+                    c.TemporaryFolderPath
+                );
+            });
+            
             using (MetadataStorage metadataStorage = new MetadataStorage(Path.Combine(context.MetadataRootFolderPath, $"{this.Name}.sqlite")))
             {
                 long emptyPageCount = 0;
@@ -115,13 +126,7 @@ namespace DanbooruDownloader
                             logger.Debug($"Skip for empty image URL : Id={post.Id}");
                             return;
                         }
-
-                        if (post.IsDeleted)
-                        {
-                            logger.Info($"{post.Id} was deleted.");
-                            return;
-                        }
-
+                        
                         post.IsValid = true;
 
                         string metadataPath = Path.Combine(this.GetMetadataBaseFolderPath(context, post), this.GetMetadataJsonFileName(context, post));
@@ -220,14 +225,14 @@ namespace DanbooruDownloader
                                             try
                                             {
                                                 File.Delete(imageTemporaryPath);
-                                            } finally { }
+                                            }
+                                            finally { }
+
                                             try
                                             {
                                                 File.Delete(metadataPath);
                                             }
                                             finally { }
-                                            
-                                            post.IsValid = false;
                                             throw new Exception();
                                         }
                                         
@@ -244,13 +249,13 @@ namespace DanbooruDownloader
                                     {
                                         File.WriteAllText(metadataPath, post.JsonString);
                                     }
-
-                                    post.IsProcessed = true;
+                                    
                                     break;
                                 }
                                 catch (NotRetryableException)
                                 {
                                     logger.Error($"Can't retryable exception was occured : Id={post.Id}");
+                                    post.IsValid = false;
                                     break;
                                 }
                                 catch (Exception e)
@@ -265,6 +270,7 @@ namespace DanbooruDownloader
                                     }
                                     else
                                     {
+                                        post.IsValid = false;
                                         break;
                                     }
                                 }

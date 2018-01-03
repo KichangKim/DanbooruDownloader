@@ -34,7 +34,6 @@ namespace DanbooruDownloader.DataSources
                 Extension = jsonObject.GetValue("file_ext")?.ToString() ?? "",
                 CreatedDate = DateTimeEx.FromUnixTimeStamp(double.Parse(jsonObject.GetValue("created_at").ToString())),
                 UpdatedDate = jsonObject.GetValue("updated_at") != null ? DateTimeEx.FromUnixTimeStamp(double.Parse(jsonObject.GetValue("updated_at").ToString())) : DateTimeEx.FromUnixTimeStamp(double.Parse(jsonObject.GetValue("created_at").ToString())),
-                IsDeleted = jsonObject.GetValue("is_deleted")?.ToString() == "true" ? true : false,
                 JsonString = jsonObject.ToString(),
             };
 

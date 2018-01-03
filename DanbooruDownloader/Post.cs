@@ -14,12 +14,10 @@ namespace DanbooruDownloader
         public DateTime UpdatedDate;
         public string JsonString;
         public string ImageUrl;
-        public bool IsDeleted;
 
         public bool ShouldDownloadImage;
         public bool ShouldUpdateImage;
         public bool ShouldSaveMetadata;
         public bool IsValid;
-        public bool IsProcessed;
     }
 }
