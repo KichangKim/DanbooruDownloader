@@ -185,6 +185,7 @@ namespace DanbooruDownloader
 
                     int shouldDownloadCount = posts.Where(p => p.ShouldDownloadImage).Count();
                     int shouldUpdateCount = posts.Where(p => p.ShouldUpdateImage).Count();
+                    int pendingCount = posts.Where(p => p.IsPending).Count();
 
                     if (posts.Length > 0)
                     {
@@ -195,6 +196,11 @@ namespace DanbooruDownloader
                         else
                         {
                             logger.Info("There are no updated posts.");
+                        }
+
+                        if (pendingCount > 0)
+                        {
+                            logger.Info($"{0} posts are pending.");
                         }
                     }
 
