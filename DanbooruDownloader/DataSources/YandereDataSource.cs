@@ -35,6 +35,7 @@ namespace DanbooruDownloader.DataSources
                 CreatedDate = DateTimeEx.FromUnixTimeStamp(double.Parse(jsonObject.GetValue("created_at").ToString())),
                 UpdatedDate = jsonObject.GetValue("updated_at") != null ? DateTimeEx.FromUnixTimeStamp(double.Parse(jsonObject.GetValue("updated_at").ToString())) : DateTimeEx.FromUnixTimeStamp(double.Parse(jsonObject.GetValue("created_at").ToString())),
                 JsonString = jsonObject.ToString(),
+                IsPending = jsonObject.GetValue("is_pending")?.ToObject<bool>() ?? false,
             };
 
             if (post.UpdatedDate < post.CreatedDate)

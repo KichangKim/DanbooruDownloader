@@ -126,6 +126,11 @@ namespace DanbooruDownloader
                             logger.Debug($"Skip for empty image URL : Id={post.Id}");
                             return;
                         }
+
+                        if (post.IsPending)
+                        {
+                            return;
+                        }
                         
                         post.IsValid = true;
 

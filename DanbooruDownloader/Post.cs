@@ -15,6 +15,8 @@ namespace DanbooruDownloader
         public string JsonString;
         public string ImageUrl;
 
+        public bool IsPending;
+
         public bool ShouldDownloadImage;
         public bool ShouldUpdateImage;
         public bool ShouldSaveMetadata;
