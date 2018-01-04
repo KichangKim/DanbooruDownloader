@@ -37,13 +37,13 @@ namespace DanbooruDownloader
                 command.Transaction = transaction;
                 command.CommandText = @"
 CREATE TABLE IF NOT EXISTS images(
-    id INTEGER NOT NULL PRIMARY KEY,
-    md5 TEXT,
-	extension TEXT,
-	tags TEXT,
-	created TEXT,
-	updated TEXT,
-	json TEXT
+    Id INTEGER NOT NULL PRIMARY KEY,
+    Md5 TEXT,
+	Extension TEXT,
+	Tags TEXT,
+	Created TEXT,
+	Updated TEXT,
+	Json TEXT
 )";
                 command.ExecuteNonQuery();
 
@@ -60,16 +60,16 @@ CREATE TABLE IF NOT EXISTS images(
                     SqliteCommand command = this.connection.CreateCommand();
 
                     command.CommandText = @"
-INSERT OR REPLACE INTO images (id, md5, extension, tags, created, updated, json) VALUES
-($id, $md5, $extension, $tags, $created, $updated, $json)";
+INSERT OR REPLACE INTO images (Id, Md5, Extension, Tags, Created, Updated, Json) VALUES
+($Id, $Md5, $Extension, $Tags, $Created, $Updated, $Json)";
 
-                    command.Parameters.AddWithValue("$id", post.Id);
-                    command.Parameters.AddWithValue("$md5", post.Md5);
-                    command.Parameters.AddWithValue("$extension", post.Extension);
-                    command.Parameters.AddWithValue("$tags", post.Tags);
-                    command.Parameters.AddWithValue("$created", post.CreatedDate);
-                    command.Parameters.AddWithValue("$updated", post.UpdatedDate);
-                    command.Parameters.AddWithValue("$json", post.JsonString);
+                    command.Parameters.AddWithValue("$Id", post.Id);
+                    command.Parameters.AddWithValue("$Md5", post.Md5);
+                    command.Parameters.AddWithValue("$Extension", post.Extension);
+                    command.Parameters.AddWithValue("$Tags", post.Tags);
+                    command.Parameters.AddWithValue("$Created", post.CreatedDate);
+                    command.Parameters.AddWithValue("$Updated", post.UpdatedDate);
+                    command.Parameters.AddWithValue("$Json", post.JsonString);
 
                     command.ExecuteNonQuery();
                 }
