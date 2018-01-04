@@ -36,7 +36,7 @@ namespace DanbooruDownloader
 
                 command.Transaction = transaction;
                 command.CommandText = @"
-CREATE TABLE IF NOT EXISTS images(
+CREATE TABLE IF NOT EXISTS Images(
     Id INTEGER NOT NULL PRIMARY KEY,
     Md5 TEXT,
 	Extension TEXT,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS images(
                     SqliteCommand command = this.connection.CreateCommand();
 
                     command.CommandText = @"
-INSERT OR REPLACE INTO images (Id, Md5, Extension, Tags, Created, Updated, Json) VALUES
+INSERT OR REPLACE INTO Images (Id, Md5, Extension, Tags, Created, Updated, Json) VALUES
 ($Id, $Md5, $Extension, $Tags, $Created, $Updated, $Json)";
 
                     command.Parameters.AddWithValue("$Id", post.Id);
