@@ -200,7 +200,7 @@ namespace DanbooruDownloader
 
                         if (pendingCount > 0)
                         {
-                            logger.Info($"{0} posts are pending.");
+                            logger.Info($"{pendingCount} posts are pending.");
                         }
                     }
 
