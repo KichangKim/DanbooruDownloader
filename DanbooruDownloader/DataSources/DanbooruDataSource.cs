@@ -28,7 +28,7 @@ namespace DanbooruDownloader.DataSources
             {
                 Id = jsonObject.GetValue("id").ToString(),
                 Md5 = jsonObject.GetValue("md5")?.ToString() ?? "",
-                ImageUrl = $"https://danbooru.donmai.us{jsonObject.GetValue("file_url")}",
+                ImageUrl = jsonObject.GetValue("file_url")?.ToString() ?? "",
                 Tags = jsonObject.GetValue("tag_string").ToString(),
                 Extension = jsonObject.GetValue("file_ext")?.ToString() ?? "",
                 CreatedDate = DateTime.Parse(jsonObject.GetValue("created_at").ToString()),
