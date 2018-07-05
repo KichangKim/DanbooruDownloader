@@ -16,6 +16,7 @@ namespace DanbooruDownloader
         public string ImageUrl;
 
         public bool IsPending;
+        public bool IsDeleted;
 
         public bool ShouldDownloadImage;
         public bool ShouldUpdateImage;

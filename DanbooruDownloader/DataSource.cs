@@ -127,7 +127,7 @@ namespace DanbooruDownloader
                             return;
                         }
 
-                        if (post.IsPending)
+                        if (post.IsPending || post.IsDeleted)
                         {
                             return;
                         }
