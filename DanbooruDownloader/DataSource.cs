@@ -74,6 +74,11 @@ namespace DanbooruDownloader
                                 });
 
                             postsAsJson = await this.GetJsonObjectsFromUrl(postsUrl);
+
+                            if (postsAsJson == null)
+                            {
+                                throw new InvalidDataException();
+                            }
                         }
                         catch (Exception e)
                         {
@@ -96,6 +101,7 @@ namespace DanbooruDownloader
                         }
 
                         await Task.Delay(context.RetryDelay);
+                        continue;
                     }
                     else
                     {
