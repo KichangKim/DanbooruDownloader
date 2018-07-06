@@ -20,7 +20,7 @@ namespace DanbooruDownloader
         public long CurrentIdForDump;
 
         public readonly int RetryCount = 5;
-        public readonly int RetryDelay = 3000;
+        public readonly int RetryDelay = 10000;
         public readonly int EmptyPageCountThreshold = 2;
         public readonly HashSet<string> AllowedExtensions = new HashSet<string>()
         {
