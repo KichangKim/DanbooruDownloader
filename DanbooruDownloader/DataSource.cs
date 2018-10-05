@@ -35,7 +35,6 @@ namespace DanbooruDownloader
             {
                 DirectoryEx.CreateDirectoryIfNotExists(
                     c.OutputPath,
-                    c.MetadataRootFolderPath,
                     c.MetadataJsonFolderPath,
                     c.TemporaryFolderPath
                 );
@@ -44,12 +43,11 @@ namespace DanbooruDownloader
             {
                 DirectoryEx.CreateDirectoryIfNotExists(
                     c.OutputPath,
-                    c.MetadataRootFolderPath,
                     c.TemporaryFolderPath
                 );
             });
-            
-            using (MetadataStorage metadataStorage = new MetadataStorage(Path.Combine(context.MetadataRootFolderPath, $"{this.Name}.sqlite")))
+
+            using (MetadataStorage metadataStorage = new MetadataStorage(this.GetMetadataSqliteFilePath(context)))
             {
                 long emptyPageCount = 0;
 
@@ -333,7 +331,7 @@ namespace DanbooruDownloader
 
                          try
                          {
-                             File.WriteAllText(Path.Combine(c.MetadataRootFolderPath, "last_post.json"), lastPost.JsonString);
+                             File.WriteAllText(Path.Combine(c.OutputPath, "last_post.json"), lastPost.JsonString);
                          }
                          finally { }
                      }
@@ -345,7 +343,7 @@ namespace DanbooruDownloader
 
             try
             {
-                File.WriteAllText(Path.Combine(context.MetadataRootFolderPath, "last_context.txt"), context.ToString());
+                File.WriteAllText(Path.Combine(context.OutputPath, "last_context.txt"), context.ToString());
             }
             finally { }
         }
@@ -421,7 +419,20 @@ namespace DanbooruDownloader
                 },
                 dumpFunction: c =>
                 {
-                    return Path.Combine(c.OutputPath, post.Md5.Substring(0, 2));
+                    return Path.Combine(c.OutputPath, "images", post.Md5.Substring(0, 2));
+                });
+        }
+
+        public string GetMetadataSqliteFilePath(DataSourceContext context)
+        {
+            return this.FunctionByMode(context,
+                tagFunction: c =>
+                {
+                    return Path.Combine(c.OutputPath, "_metadata", $"{this.Name}.sqlite");
+                },
+                dumpFunction: c =>
+                {
+                    return Path.Combine(c.OutputPath, $"{this.Name}.sqlite");
                 });
         }
 
@@ -439,7 +450,7 @@ namespace DanbooruDownloader
                 },
                 dumpFunction: c =>
                 {
-                    return Path.Combine(c.OutputPath, post.Md5.Substring(0, 2));
+                    return Path.Combine(c.OutputPath, "images", post.Md5.Substring(0, 2));
                 });
         }
 

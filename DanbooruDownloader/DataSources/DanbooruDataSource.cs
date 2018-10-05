@@ -30,6 +30,7 @@ namespace DanbooruDownloader.DataSources
                 Md5 = jsonObject.GetValue("md5")?.ToString() ?? "",
                 ImageUrl = jsonObject.GetValue("file_url")?.ToString() ?? "",
                 Tags = jsonObject.GetValue("tag_string").ToString(),
+                GeneralTagCount = jsonObject.GetValue("tag_count_general")?.ToObject<int>() ?? 0,
                 Extension = jsonObject.GetValue("file_ext")?.ToString() ?? "",
                 CreatedDate = DateTime.Parse(jsonObject.GetValue("created_at").ToString()),
                 UpdatedDate = jsonObject.GetValue("updated_at") != null ? DateTime.Parse(jsonObject.GetValue("updated_at").ToString()) : DateTime.Parse(jsonObject.GetValue("created_at").ToString()),

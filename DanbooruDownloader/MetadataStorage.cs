@@ -41,9 +41,7 @@ CREATE TABLE IF NOT EXISTS Images(
     Md5 TEXT,
 	Extension TEXT,
 	Tags TEXT,
-	Created TEXT,
-	Updated TEXT,
-	Json TEXT
+	GeneralTagCount INTEGER
 )";
                 command.ExecuteNonQuery();
 
@@ -60,16 +58,14 @@ CREATE TABLE IF NOT EXISTS Images(
                     SqliteCommand command = this.connection.CreateCommand();
 
                     command.CommandText = @"
-INSERT OR REPLACE INTO Images (Id, Md5, Extension, Tags, Created, Updated, Json) VALUES
-(@Id, @Md5, @Extension, @Tags, @Created, @Updated, @Json)";
+INSERT OR REPLACE INTO Images (Id, Md5, Extension, Tags, GeneralTagCount) VALUES
+(@Id, @Md5, @Extension, @Tags, @GeneralTagCount)";
 
                     command.Parameters.AddWithValue("@Id", post.Id);
                     command.Parameters.AddWithValue("@Md5", post.Md5);
                     command.Parameters.AddWithValue("@Extension", post.Extension);
                     command.Parameters.AddWithValue("@Tags", post.Tags);
-                    command.Parameters.AddWithValue("@Created", post.CreatedDate);
-                    command.Parameters.AddWithValue("@Updated", post.UpdatedDate);
-                    command.Parameters.AddWithValue("@Json", post.JsonString);
+                    command.Parameters.AddWithValue("@GeneralTagCount", post.GeneralTagCount);
 
                     command.ExecuteNonQuery();
                 }

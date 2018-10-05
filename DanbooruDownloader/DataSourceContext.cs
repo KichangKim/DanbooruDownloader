@@ -38,14 +38,6 @@ namespace DanbooruDownloader
             }
         }
 
-        public string MetadataRootFolderPath
-        {
-            get
-            {
-                return Path.Combine(this.OutputPath, "_metadata");
-            }
-        }
-
         public string MetadataJsonFolderPath
         {
             get

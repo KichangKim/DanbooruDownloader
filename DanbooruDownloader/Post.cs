@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace DanbooruDownloader
@@ -9,6 +10,7 @@ namespace DanbooruDownloader
         public string Id;
         public string Extension;
         public string Tags;
+        public int GeneralTagCount;
         public string Md5;
         public DateTime CreatedDate;
         public DateTime UpdatedDate;
