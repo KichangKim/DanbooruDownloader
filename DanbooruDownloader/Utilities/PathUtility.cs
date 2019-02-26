@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace DanbooruDownloader
+namespace DanbooruDownloader.Utilities
 {
-    public static class DirectoryEx
+    public static class PathUtility
     {
         public static void CreateDirectoryIfNotExists(params string[] paths)
         {
@@ -16,6 +16,12 @@ namespace DanbooruDownloader
                     Directory.CreateDirectory(path);
                 }
             }
+        }
+
+        public static void ChangeFileTimestamp(string path, DateTime createTime, DateTime updateTime)
+        {
+            File.SetCreationTime(path, createTime);
+            File.SetLastWriteTime(path, updateTime);
         }
     }
 }
