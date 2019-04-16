@@ -13,7 +13,7 @@ namespace DanbooruDownloader.Utilities
     {
         public static string GetPostsUrl(long startId)
         {
-            string query = $"id:<={startId} status:any";
+            string query = $"id:>={startId} order:id_asc";
             string urlEncodedQuery = WebUtility.UrlEncode(query);
             return $"https://danbooru.donmai.us/posts.json?tags={urlEncodedQuery}&page=1&limit=1000";
         }

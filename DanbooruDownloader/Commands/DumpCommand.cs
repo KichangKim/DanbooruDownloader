@@ -45,7 +45,7 @@ namespace DanbooruDownloader.Commands
 
                     await TaskUtility.RunWithRetry(async () =>
                     {
-                        Log.Info($"Downloading metadata ... (~ {startId})");
+                        Log.Info($"Downloading metadata ... ({startId} ~ )");
                         postJObjects = await DanbooruUtility.GetPosts(startId);
                     }, e =>
                     {
@@ -220,12 +220,7 @@ namespace DanbooruDownloader.Commands
 
                     long lastId = long.Parse(posts.Last().Id);
 
-                    if (lastId <= 1)
-                    {
-                        break;
-                    }
-
-                    startId = lastId - 1;
+                    startId = lastId + 1;
                 }
 
                 try

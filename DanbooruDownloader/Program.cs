@@ -24,14 +24,14 @@ namespace DanbooruDownloader
                 command.HelpOption("-h|--help");
 
                 CommandArgument outputPathArgument = command.Argument("path", "Output path.", false);
-                CommandOption startIdOption = command.Option("-s|--start-id <id>", "Starting Id. Default is Int64.max.", CommandOptionType.SingleValue);
+                CommandOption startIdOption = command.Option("-s|--start-id <id>", "Starting Id. Default is 1.", CommandOptionType.SingleValue);
                 CommandOption ignoreHashCheckOption = command.Option("-i|--ignore-hash-check <index>", "Ignore hash check.", CommandOptionType.NoValue);
                 CommandOption includeDeletedOption = command.Option("-d|--deleted", "Include deleted posts.", CommandOptionType.NoValue);
 
                 command.OnExecute(() =>
                 {
                     string path = outputPathArgument.Value;
-                    long startId = long.MaxValue;
+                    long startId = 1;
                     bool ignoreHashCheck = ignoreHashCheckOption.HasValue();
                     bool includeDeleted = includeDeletedOption.HasValue();
 
