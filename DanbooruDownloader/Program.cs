@@ -25,7 +25,7 @@ namespace DanbooruDownloader
 
                 CommandArgument outputPathArgument = command.Argument("path", "Output path.", false);
                 CommandOption startIdOption = command.Option("-s|--start-id <id>", "Starting Id. Default is 1.", CommandOptionType.SingleValue);
-                CommandOption ignoreHashCheckOption = command.Option("-i|--ignore-hash-check <index>", "Ignore hash check.", CommandOptionType.NoValue);
+                CommandOption ignoreHashCheckOption = command.Option("-i|--ignore-hash-check", "Ignore hash check.", CommandOptionType.NoValue);
                 CommandOption includeDeletedOption = command.Option("-d|--deleted", "Include deleted posts.", CommandOptionType.NoValue);
 
                 command.OnExecute(() =>
