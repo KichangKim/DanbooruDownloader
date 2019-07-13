@@ -3,7 +3,7 @@
 
 ## Quick start
 ```
-> DeepDanbooru dump MyDataset
+> DanbooruDownloader dump MyDataset
 ```
 Download all images and its metadata on Danbooru server to local folder `MyDataset`. To see further help, run with `--help` option.
 
