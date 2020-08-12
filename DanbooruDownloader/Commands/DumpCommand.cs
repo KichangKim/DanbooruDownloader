@@ -63,7 +63,7 @@ namespace DanbooruDownloader.Commands
 
                     // Validate post
                     Log.Info($"Checking {postJObjects.Length} posts ...");
-                    Post[] posts = postJObjects.Select(p => ConvertToPost(p)).ToArray();
+                    Post[] posts = postJObjects.Select(p => ConvertToPost(p)).Where(p => p != null).ToArray();
 
                     Parallel.ForEach(posts, post =>
                     {
@@ -99,7 +99,7 @@ namespace DanbooruDownloader.Commands
                             {
                                 Post cachedPost = ConvertToPost(JObject.Parse(File.ReadAllText(metadataPath)));
 
-                                if (post.UpdatedDate > cachedPost.UpdatedDate)
+                                if (cachedPost == null || post.UpdatedDate > cachedPost.UpdatedDate)
                                 {
                                     post.ShouldSaveMetadata = true;
                                     post.ShouldUpdateImage = true;
@@ -237,25 +237,41 @@ namespace DanbooruDownloader.Commands
 
         static Post ConvertToPost(JObject jsonObject)
         {
-            Post post = new Post()
+            try
             {
-                Id = jsonObject.GetValue("id").ToString(),
-                Md5 = jsonObject.GetValue("md5")?.ToString() ?? "",
-                Extension = jsonObject.GetValue("file_ext")?.ToString() ?? "",
-                ImageUrl = jsonObject.GetValue("file_url")?.ToString() ?? "",
-                CreatedDate = DateTime.Parse(jsonObject.GetValue("created_at").ToString()),
-                UpdatedDate = jsonObject.GetValue("updated_at") != null ? DateTime.Parse(jsonObject.GetValue("updated_at").ToString()) : DateTime.Parse(jsonObject.GetValue("created_at").ToString()),
-                IsDeleted = jsonObject.GetValue("is_deleted")?.ToObject<bool>() ?? false,
-                IsPending = jsonObject.GetValue("is_pending")?.ToObject<bool>() ?? false,
-                JObject = jsonObject,
-            };
+                var id = jsonObject.GetValue("id").ToString();
+                var md5 = jsonObject.GetValue("md5")?.ToString() ?? "";
+                var extension = jsonObject.GetValue("file_ext")?.ToString() ?? "";
+                var imageUrl = jsonObject.GetValue("file_url")?.ToString() ?? "";
+                var createdDate = DateTime.Parse(jsonObject.GetValue("created_at").ToString());
+                var updatedDate = jsonObject.GetValue("updated_at") != null ? DateTime.Parse(jsonObject.GetValue("updated_at").ToString()) : DateTime.Parse(jsonObject.GetValue("created_at").ToString());
+                var isDeleted = jsonObject.GetValue("is_deleted")?.ToObject<bool>() ?? false;
+                var isPending = jsonObject.GetValue("is_pending")?.ToObject<bool>() ?? false;
 
-            if (post.UpdatedDate < post.CreatedDate)
-            {
-                post.UpdatedDate = post.CreatedDate;
+                Post post = new Post()
+                {
+                    Id = id,
+                    Md5 = md5,
+                    Extension = extension,
+                    ImageUrl = imageUrl,
+                    CreatedDate = createdDate,
+                    UpdatedDate = updatedDate,
+                    IsDeleted = isDeleted,
+                    IsPending = isPending,
+                    JObject = jsonObject,
+                };
+
+                if (post.UpdatedDate < post.CreatedDate)
+                {
+                    post.UpdatedDate = post.CreatedDate;
+                }
+
+                return post;
             }
-
-            return post;
+            catch
+            {
+                return null;
+            }
         }
 
         static string GetPostLocalMetadataPath(string imageFolderPath, Post post)
