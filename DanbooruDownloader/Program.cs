@@ -25,6 +25,7 @@ namespace DanbooruDownloader
 
                 CommandArgument outputPathArgument = command.Argument("path", "Output path.", false);
                 CommandOption startIdOption = command.Option("-s|--start-id <id>", "Starting Id. Default is 1.", CommandOptionType.SingleValue);
+                CommandOption parallelDownloadsOption = command.Option("-p|--parallel-downloads <value>", "Number of images to download simultaneously. Default is 5.", CommandOptionType.SingleValue);
                 CommandOption ignoreHashCheckOption = command.Option("-i|--ignore-hash-check", "Ignore hash check.", CommandOptionType.NoValue);
                 CommandOption includeDeletedOption = command.Option("-d|--deleted", "Include deleted posts.", CommandOptionType.NoValue);
 
@@ -32,6 +33,7 @@ namespace DanbooruDownloader
                 {
                     string path = outputPathArgument.Value;
                     long startId = 1;
+                    int parallelDownloads = 5;
                     bool ignoreHashCheck = ignoreHashCheckOption.HasValue();
                     bool includeDeleted = includeDeletedOption.HasValue();
 
@@ -40,8 +42,13 @@ namespace DanbooruDownloader
                         Console.WriteLine("Invalid start id.");
                         return -2;
                     }
+                    if (parallelDownloadsOption.HasValue() && !int.TryParse(parallelDownloadsOption.Value(), out parallelDownloads))
+                    {
+                        Console.WriteLine("Invalid number of parallel downloads.");
+                        return -2;
+                    }
 
-                    DumpCommand.Run(path, startId, ignoreHashCheck, includeDeleted).Wait();
+                    DumpCommand.Run(path, startId, parallelDownloads, ignoreHashCheck, includeDeleted).Wait();
 
                     return 0;
                 });
