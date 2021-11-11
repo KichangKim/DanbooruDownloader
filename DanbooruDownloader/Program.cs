@@ -23,15 +23,17 @@ namespace DanbooruDownloader
                 command.Description = "Download entire images on the server of specified source.";
                 command.HelpOption("-h|--help");
 
-                CommandArgument outputPathArgument = command.Argument("path", "Output path.", false);
-                CommandOption startIdOption = command.Option("-s|--start-id <id>", "Starting Id. Default is 1.", CommandOptionType.SingleValue);
-                CommandOption ignoreHashCheckOption = command.Option("-i|--ignore-hash-check", "Ignore hash check.", CommandOptionType.NoValue);
-                CommandOption includeDeletedOption = command.Option("-d|--deleted", "Include deleted posts.", CommandOptionType.NoValue);
+                var outputPathArgument = command.Argument("path", "Output path.", false);
+                var startIdOption = command.Option("-s|--start-id <id>", "Starting Id. Default is 1.", CommandOptionType.SingleValue);
+                var endIdOption = command.Option("-e|--end-id <id>", "Ending Id. Default is 0 (unlimited).).", CommandOptionType.SingleValue);
+                var ignoreHashCheckOption = command.Option("-i|--ignore-hash-check", "Ignore hash check.", CommandOptionType.NoValue);
+                var includeDeletedOption = command.Option("-d|--deleted", "Include deleted posts.", CommandOptionType.NoValue);
 
                 command.OnExecute(() =>
                 {
                     string path = outputPathArgument.Value;
                     long startId = 1;
+                    long endId = 0;
                     bool ignoreHashCheck = ignoreHashCheckOption.HasValue();
                     bool includeDeleted = includeDeletedOption.HasValue();
 
@@ -41,7 +43,13 @@ namespace DanbooruDownloader
                         return -2;
                     }
 
-                    DumpCommand.Run(path, startId, ignoreHashCheck, includeDeleted).Wait();
+                    if (endIdOption.HasValue() && !long.TryParse(endIdOption.Value(), out endId))
+                    {
+                        Console.WriteLine("Invalid end id.");
+                        return -2;
+                    }
+
+                    DumpCommand.Run(path, startId, endId, ignoreHashCheck, includeDeleted).Wait();
 
                     return 0;
                 });
