@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyName>DanbooruDownloader</AssemblyName>
+    <Version>2.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
