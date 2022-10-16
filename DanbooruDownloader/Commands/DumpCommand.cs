@@ -18,7 +18,7 @@ namespace DanbooruDownloader.Commands
     {
         static Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static async Task Run(string path, long startId, long endId, bool ignoreHashCheck, bool includeDeleted)
+        public static async Task Run(string path, long startId, long endId, bool ignoreHashCheck, bool includeDeleted, string username, string apikey)
         {
             string tempFolderPath = Path.Combine(path, "_temp");
             string imageFolderPath = Path.Combine(path, "images");
@@ -46,7 +46,7 @@ namespace DanbooruDownloader.Commands
                     await TaskUtility.RunWithRetry(async () =>
                     {
                         Log.Info($"Downloading metadata ... ({startId} ~ )");
-                        postJObjects = await DanbooruUtility.GetPosts(startId);
+                        postJObjects = await DanbooruUtility.GetPosts(startId, username, apikey);
                     }, e =>
                     {
                         Log.Error(e);
@@ -177,7 +177,7 @@ namespace DanbooruDownloader.Commands
                                 if (post.ShouldDownloadImage)
                                 {
                                     Log.Info($"Downloading post {post.Id} ...");
-                                    await Download(post.ImageUrl, tempImagePath);
+                                    await Download(post.ImageUrl + $"?login={username}&api_key={apikey}", tempImagePath);
 
                                     string downloadedMd5 = GetMd5Hash(tempImagePath);
 

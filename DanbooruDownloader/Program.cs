@@ -28,6 +28,8 @@ namespace DanbooruDownloader
                 var endIdOption = command.Option("-e|--end-id <id>", "Ending Id. Default is 0 (unlimited).).", CommandOptionType.SingleValue);
                 var ignoreHashCheckOption = command.Option("-i|--ignore-hash-check", "Ignore hash check.", CommandOptionType.NoValue);
                 var includeDeletedOption = command.Option("-d|--deleted", "Include deleted posts.", CommandOptionType.NoValue);
+                var usernameOption = command.Option("--username", "Username of Danbooru account.", CommandOptionType.SingleValue);
+                var apikeyOption = command.Option("--api-key", "API key of Danbooru account.", CommandOptionType.SingleValue);
 
                 command.OnExecute(() =>
                 {
@@ -49,7 +51,16 @@ namespace DanbooruDownloader
                         return -2;
                     }
 
-                    DumpCommand.Run(path, startId, endId, ignoreHashCheck, includeDeleted).Wait();
+                    if (!usernameOption.HasValue() || !apikeyOption.HasValue())
+                    {
+                        Console.WriteLine("You must specify username and api key.");
+                        return -2;
+                    }
+
+                    var username = usernameOption.Value();
+                    var apikey = apikeyOption.Value();
+
+                    DumpCommand.Run(path, startId, endId, ignoreHashCheck, includeDeleted, username, apikey).Wait();
 
                     return 0;
                 });
