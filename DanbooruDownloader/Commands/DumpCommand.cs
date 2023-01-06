@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using Newtonsoft.Json.Linq;
 using NLog;
 using System;
+using CloudflareSolverRe;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace DanbooruDownloader.Commands
         static Logger Log = LogManager.GetCurrentClassLogger();
 
         public static async Task Run(string path, long startId, int parallelDownloads, bool ignoreHashCheck, bool includeDeleted)
+
         {
             string tempFolderPath = Path.Combine(path, "_temp");
             string imageFolderPath = Path.Combine(path, "images");
@@ -47,7 +49,7 @@ namespace DanbooruDownloader.Commands
                     await TaskUtility.RunWithRetry(async () =>
                     {
                         Log.Info($"Downloading metadata ... ({startId} ~ )");
-                        postJObjects = await DanbooruUtility.GetPosts(startId);
+                        postJObjects = await DanbooruUtility.GetPosts(startId, username, apikey);
                     }, e =>
                     {
                         Log.Error(e);
@@ -64,7 +66,15 @@ namespace DanbooruDownloader.Commands
 
                     // Validate post
                     Log.Info($"Checking {postJObjects.Length} posts ...");
-                    Post[] posts = postJObjects.Select(p => ConvertToPost(p)).Where(p => p != null).ToArray();
+                    Post[] posts = postJObjects.Select(p => ConvertToPost(p))
+                        .Where(p => p != null && (endId <= 0 || long.Parse(p.Id) <= endId))
+                        .ToArray();
+
+                    if (posts.Length == 0)
+                    {
+                        Log.Info("There is no valid posts.");
+                        break;
+                    }
 
                     Parallel.ForEach(posts, post =>
                     {
@@ -172,7 +182,7 @@ namespace DanbooruDownloader.Commands
                                 if (post.ShouldDownloadImage)
                                 {
                                     Log.Info($"Downloading post {post.Id} ...");
-                                    await Download(post.ImageUrl, tempImagePath);
+                                    await Download(post.ImageUrl + $"?login={username}&api_key={apikey}", tempImagePath);
 
                                     string downloadedMd5 = GetMd5Hash(tempImagePath);
 
@@ -208,6 +218,7 @@ namespace DanbooruDownloader.Commands
                                 }
                             }, e =>
                             {
+                                Log.Error(e);
                                 return !(e is NotRetryableException);
                             }, 10, 3000);
                         }
@@ -311,7 +322,13 @@ namespace DanbooruDownloader.Commands
 
         static async Task Download(string uri, string path)
         {
-            using (HttpClient client = new HttpClient())
+            var handler = new ClearanceHandler
+            {
+                MaxTries = 3,
+                ClearanceDelay = 3000
+            };
+
+            using (HttpClient client = new HttpClient(handler))
             {
                 HttpResponseMessage response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
 

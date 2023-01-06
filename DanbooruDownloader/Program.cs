@@ -29,11 +29,13 @@ namespace DanbooruDownloader
                 CommandOption ignoreHashCheckOption = command.Option("-i|--ignore-hash-check", "Ignore hash check.", CommandOptionType.NoValue);
                 CommandOption includeDeletedOption = command.Option("-d|--deleted", "Include deleted posts.", CommandOptionType.NoValue);
 
+
                 command.OnExecute(() =>
                 {
                     string path = outputPathArgument.Value;
                     long startId = 1;
                     int parallelDownloads = 5;
+
                     bool ignoreHashCheck = ignoreHashCheckOption.HasValue();
                     bool includeDeleted = includeDeletedOption.HasValue();
 
