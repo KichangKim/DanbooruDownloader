@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using Newtonsoft.Json.Linq;
 using NLog;
 using System;
+using CloudflareSolverRe;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -213,6 +214,7 @@ namespace DanbooruDownloader.Commands
                                 }
                             }, e =>
                             {
+                                Log.Error(e);
                                 return !(e is NotRetryableException);
                             }, 10, 3000);
                         }
@@ -312,7 +314,13 @@ namespace DanbooruDownloader.Commands
 
         static async Task Download(string uri, string path)
         {
-            using (HttpClient client = new HttpClient())
+            var handler = new ClearanceHandler
+            {
+                MaxTries = 3,
+                ClearanceDelay = 3000
+            };
+
+            using (HttpClient client = new HttpClient(handler))
             {
                 HttpResponseMessage response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
 
