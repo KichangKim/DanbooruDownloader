@@ -20,8 +20,8 @@ namespace DanbooruDownloader.Commands
     {
         static Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static async Task Run(string path, long startId, int parallelDownloads, bool ignoreHashCheck, bool includeDeleted)
 
+        public static async Task Run(string path, long startId, long endId, int parallelDownloads, bool ignoreHashCheck, bool includeDeleted, string username, string apikey)
         {
             string tempFolderPath = Path.Combine(path, "_temp");
             string imageFolderPath = Path.Combine(path, "images");
