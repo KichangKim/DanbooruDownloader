@@ -1,4 +1,4 @@
-﻿using DanbooruDownloader.Utilities;
+using DanbooruDownloader.Utilities;
 using Microsoft.Data.Sqlite;
 using Newtonsoft.Json.Linq;
 using NLog;
@@ -177,7 +177,29 @@ namespace DanbooruDownloader.Commands
                                 if (post.ShouldDownloadImage)
                                 {
                                     Log.Info($"Downloading post {post.Id} ...");
-                                    await Download(post.ImageUrl + $"?login={username}&api_key={apikey}", tempImagePath);
+                                    // changing this to use HTTP client instead
+                                    // danbooru requires a user agent
+                                    // await Download(post.ImageUrl + $"?login={username}&api_key={apikey}", tempImagePath);
+						            string urlEncodedUsername = WebUtility.UrlEncode(username);
+						            string urlEncodedApikey = WebUtility.UrlEncode(apikey);
+						            string url = $"{post.ImageUrl}?api_key={urlEncodedApikey}&login={urlEncodedUsername}";
+						            using (HttpClient client2 = new HttpClient())
+						            {
+										client2.DefaultRequestHeaders.Add("User-Agent", "C# App");
+								        var response = await client2.GetAsync(url);
+								        if (response.IsSuccessStatusCode)
+								        {
+								           var stream = await response.Content.ReadAsStreamAsync();
+								           var fileInfo = new FileInfo(tempImagePath);
+								           using (var fileStream = fileInfo.OpenWrite())
+								           {
+								              await stream.CopyToAsync(fileStream);
+								           }
+								        }
+								        else
+								        {
+								          throw new Exception("File not found");
+								        }									}
 
                                     string downloadedMd5 = GetMd5Hash(tempImagePath);
 
@@ -195,7 +217,7 @@ namespace DanbooruDownloader.Commands
                                             File.Delete(metadataPath);
                                         }
                                         finally { }
-                                        throw new Exception();
+                                        throw new Exception("MD5 hash did not match");
                                     }
 
                                     File.Delete(imagePath);
