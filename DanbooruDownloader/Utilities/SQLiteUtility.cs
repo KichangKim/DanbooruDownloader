@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS posts
     tag_string_meta TEXT,
     file_url TEXT,
     large_file_url TEXT,
-    preview_file_url TEXT
+    preview_file_url TEXT,
+    media_asset TEXT
 );";
                 command.ExecuteNonQuery();
 

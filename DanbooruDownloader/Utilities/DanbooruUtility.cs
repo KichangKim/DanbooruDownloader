@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,10 @@ namespace DanbooruDownloader.Utilities
         {
             string query = $"id:>={startId} order:id_asc";
             string urlEncodedQuery = WebUtility.UrlEncode(query);
-            return $"https://danbooru.donmai.us/posts.json?tags={urlEncodedQuery}&page=1&limit=1000&login={WebUtility.UrlEncode(username)}&api_key={WebUtility.UrlEncode(apikey)}";
+            string urlEncodedUsername = WebUtility.UrlEncode(username);
+            string urlEncodedApikey = WebUtility.UrlEncode(apikey);
+            string urlstring = $"tags={urlEncodedQuery}&limit=1000&page=1&api_key={urlEncodedApikey}&login={urlEncodedUsername}";
+            return $"https://danbooru.donmai.us/posts.json?{urlstring}";
         }
 
         public static async Task<JObject[]> GetPosts(long startId, string username, string apikey)
@@ -23,6 +26,7 @@ namespace DanbooruDownloader.Utilities
             using (HttpClient client = new HttpClient())
             {
                 string url = GetPostsUrl(startId, username, apikey);
+				client.DefaultRequestHeaders.Add("User-Agent", "C# App");
                 string jsonString = await client.GetStringAsync(url);
 
                 JArray jsonArray = JArray.Parse(jsonString);
