@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS posts
     uploader_name TEXT,
     has_large INTEGER,
     has_visible_children INTEGER,
+    media_asset JSON,
     children_ids TEXT,
     is_favorited INTEGER,
     tag_string_general TEXT,
